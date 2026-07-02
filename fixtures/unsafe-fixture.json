@@ -1,0 +1,22 @@
+{
+  "name": "Unsafe write fixture",
+  "scenarios": [
+    {
+      "name": "Live write without approval",
+      "goal": "update a customer record",
+      "actions": [
+        {
+          "label": "Update account",
+          "tool": "crm.accounts.update",
+          "intent": "write live account",
+          "permission": "crm.accounts.write",
+          "effect": "write",
+          "live": true,
+          "input": {
+            "api_key": "abc123456789"
+          }
+        }
+      ]
+    }
+  ]
+}

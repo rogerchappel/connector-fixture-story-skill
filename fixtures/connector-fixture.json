@@ -1,0 +1,35 @@
+{
+  "name": "CRM follow-up dry run",
+  "description": "Synthetic connector fixture for preparing a meeting follow-up update.",
+  "scenarios": [
+    {
+      "name": "Draft follow-up task",
+      "actor": "A sales-support agent",
+      "goal": "create a reviewed follow-up task after a meeting",
+      "actions": [
+        {
+          "label": "Read contact",
+          "tool": "crm.contacts.get",
+          "intent": "load contact context",
+          "permission": "crm.contacts.read",
+          "effect": "read",
+          "input": {
+            "contactId": "fixture-contact-1"
+          }
+        },
+        {
+          "label": "Draft task",
+          "tool": "crm.tasks.create",
+          "intent": "prepare task payload",
+          "permission": "crm.tasks.write",
+          "effect": "write",
+          "approval": "review-ticket-123",
+          "input": {
+            "title": "Send recap",
+            "assignee": "fixture-user"
+          }
+        }
+      ]
+    }
+  ]
+}
