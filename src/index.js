@@ -49,6 +49,9 @@ function normalizeScenario(input, index) {
 }
 function normalizeAction(input, index) { return { label: input.label || input.intent || `action ${index + 1}`, tool: input.tool || '', intent: input.intent || '', permission: input.permission || '', approval: input.approval || '', effect: input.effect || 'read', live: Boolean(input.live), input: input.input || {} }; }
 function checklistFor(scenario) { return ['Confirm fixture data is synthetic or redacted.', 'Confirm permissions match the stated goal.', ...scenario.actions.filter(a => a.effect === 'write' || a.live).map(a => `Confirm approval evidence for ${a.label}.`)]; }
-function containsSecret(value) { return JSON.stringify(value || {}).match(/(api[_-]?key|secret|token|password)\s*[:=]\s*[A-Za-z0-9_\-]{8,}/i); }
+    function containsSecret(value) {
+      const text = JSON.stringify(value || {});
+      return /"(api[_-]?key|secret|token|password)"\s*:\s*"[A-Za-z0-9_\-]{8,}"/i.test(text) || /(api[_-]?key|secret|token|password)\s*[:=]\s*[A-Za-z0-9_\-]{8,}/i.test(text);
+    }
 function blocker(code, message) { return { level: 'blocker', code, message }; }
 function warning(code, message) { return { level: 'warning', code, message }; }
