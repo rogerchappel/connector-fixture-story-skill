@@ -1,0 +1,35 @@
+{
+  "name": "connector-fixture-story-skill",
+  "version": "0.1.0",
+  "description": "Render connector fixture bundles as dry-run review stories for agents.",
+  "type": "module",
+  "bin": {
+    "connector-fixture-story-skill": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/index.js && node --check src/cli.js",
+    "smoke": "node src/cli.js fixtures/connector-fixture.json --format markdown",
+    "build": "npm run check && npm test"
+  },
+  "keywords": [
+    "agent",
+    "connector",
+    "fixtures",
+    "dry-run",
+    "skill"
+  ],
+  "author": "Roger Chappel",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "files": [
+    "src",
+    "docs",
+    "fixtures",
+    "examples",
+    "SKILL.md",
+    "README.md"
+  ]
+}
