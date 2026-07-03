@@ -13,5 +13,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci
+      - run: npm install --package-lock=false
       - run: npm run check && npm test && npm run smoke && npm run package:smoke
