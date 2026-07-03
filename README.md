@@ -22,3 +22,13 @@ The skill validates fixture structure and obvious safety signals. It does not pr
 ## Safety Notes
 
 Treat `blocked` output as a release-review stop. Remove secrets from fixtures and attach approval evidence before live connector workflows are considered.
+
+## Local Verification
+
+```sh
+npm run check
+npm test
+npm run smoke
+npm run package:smoke
+npm run release:check
+```

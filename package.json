@@ -10,7 +10,10 @@
     "test": "node --test",
     "check": "node --check src/index.js && node --check src/cli.js",
     "smoke": "node src/cli.js fixtures/connector-fixture.json --format markdown",
-    "build": "npm run check && npm test"
+    "build": "npm run check && npm test",
+    "lint": "npm run check",
+    "package:smoke": "npm pack --dry-run",
+    "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke"
   },
   "keywords": [
     "agent",
@@ -31,5 +34,13 @@
     "examples",
     "SKILL.md",
     "README.md"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/connector-fixture-story-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/connector-fixture-story-skill/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/connector-fixture-story-skill#readme"
 }
