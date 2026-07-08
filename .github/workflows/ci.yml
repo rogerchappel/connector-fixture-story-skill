@@ -37,3 +37,6 @@ jobs:
 
       - name: Run smoke test
         run: npm run smoke --if-present
+
+      - name: Run package smoke test
+        run: npm run package:smoke --if-present

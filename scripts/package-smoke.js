@@ -16,7 +16,11 @@ const required = [
   'examples/review-story.md',
   'docs/RELEASE_CANDIDATE.md',
   'SKILL.md',
-  'README.md'
+  'README.md',
+  'LICENSE',
+  'SECURITY.md',
+  'CONTRIBUTING.md',
+  'CHANGELOG.md'
 ];
 
 const missing = required.filter((entry) => !output.includes(entry));
