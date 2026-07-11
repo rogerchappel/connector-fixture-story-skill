@@ -12,6 +12,10 @@ if (!file) {
   console.log('Usage: connector-fixture-story-skill <fixture.json> [--format markdown|json]');
   process.exit(1);
 }
+if (!['markdown', 'json'].includes(format)) {
+  console.error('connector-fixture-story-skill: --format must be markdown or json');
+  process.exit(1);
+}
 const story = buildStory(loadFixture(file));
 if (format === 'json') console.log(JSON.stringify(story, null, 2));
 else console.log(renderMarkdown(story));

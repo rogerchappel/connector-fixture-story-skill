@@ -7,6 +7,7 @@ Local-first agent skill that turns connector fixture bundles into dry-run review
 ```bash
 npm install
 npm run smoke
+node src/cli.js --help
 node src/cli.js fixtures/connector-fixture.json --format markdown
 node src/cli.js fixtures/unsafe-fixture.json --format json
 ```
@@ -32,6 +33,9 @@ npm run smoke
 npm run package:smoke
 npm run release:check
 ```
+
+`npm run release:check` is the broadest local gate before opening a release PR. It combines syntax checks, the test suite, the fixture-backed CLI smoke, and package contents validation.
+
 ## Development checks
 
 Run the same local gates that CI runs before opening a PR:
@@ -42,4 +46,3 @@ npm run build --if-present
 npm test --if-present
 npm run smoke --if-present
 ```
-
