@@ -16,6 +16,19 @@ node src/cli.js fixtures/unsafe-fixture.json --format json
 
 A bundle includes `name`, optional `description`, and `scenarios`. Each scenario has a `goal` and `actions`; each action should name a `tool`, `intent`, `permission`, `effect`, and approval evidence for write or live actions.
 
+## Verification
+
+Run the same checks used for release-readiness before publishing or opening a release PR:
+
+```bash
+npm run check
+npm test
+npm run build
+npm run smoke
+npm run release:check
+npm pack --dry-run
+```
+
 ## Limitations
 
 The skill validates fixture structure and obvious safety signals. It does not prove connector implementation correctness and never executes actions.
