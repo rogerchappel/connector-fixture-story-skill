@@ -29,6 +29,8 @@ npm run release:check
 npm pack --dry-run
 ```
 
+The CI workflow runs `npm run release:check`, so local release checks and pull-request checks exercise the same syntax, test, smoke, and package contents coverage.
+
 ## Limitations
 
 The skill validates fixture structure and obvious safety signals. It does not prove connector implementation correctness and never executes actions.
@@ -36,26 +38,3 @@ The skill validates fixture structure and obvious safety signals. It does not pr
 ## Safety Notes
 
 Treat `blocked` output as a release-review stop. Remove secrets from fixtures and attach approval evidence before live connector workflows are considered.
-
-## Local Verification
-
-```sh
-npm run check
-npm test
-npm run smoke
-npm run package:smoke
-npm run release:check
-```
-
-`npm run release:check` is the broadest local gate before opening a release PR. It combines syntax checks, the test suite, the fixture-backed CLI smoke, and package contents validation.
-
-## Development checks
-
-Run the same local gates that CI runs before opening a PR:
-
-```bash
-npm run check --if-present
-npm run build --if-present
-npm test --if-present
-npm run smoke --if-present
-```
