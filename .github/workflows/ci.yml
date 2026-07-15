@@ -5,21 +5,25 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  verify:
+  release-readiness:
+    name: Release readiness
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
         run: |
@@ -29,5 +33,5 @@ jobs:
             npm install
           fi
 
-      - name: Run release readiness gate
+      - name: Run release checks
         run: npm run release:check
