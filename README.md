@@ -38,3 +38,7 @@ The skill validates fixture structure and obvious safety signals. It does not pr
 ## Safety Notes
 
 Treat `blocked` output as a release-review stop. Remove secrets from fixtures and attach approval evidence before live connector workflows are considered.
+
+## Release notes
+
+Before tagging a release, confirm the smoke fixture still represents the intended workflow and summarize any changed output, limitations, or operator steps in the PR.
