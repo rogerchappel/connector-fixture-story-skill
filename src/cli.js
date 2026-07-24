@@ -19,5 +19,6 @@ if (!['markdown', 'json'].includes(format)) {
 const story = buildStory(loadFixture(file));
 if (format === 'json') console.log(JSON.stringify(story, null, 2));
 else console.log(renderMarkdown(story));
+if (story.status === 'blocked') process.exitCode = 2;
 
 function valueAfter(args, flag) { const i = args.indexOf(flag); return i >= 0 ? args[i + 1] : undefined; }
