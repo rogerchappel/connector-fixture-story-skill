@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 
+const SUPPORTED_EFFECTS = new Set(['read', 'write']);
+
 export function loadFixture(path) { return parseFixture(fs.readFileSync(path, 'utf8'), path); }
 
 export function parseFixture(text, source = 'inline') {
@@ -16,6 +18,7 @@ export function analyzeFixture(fixture) {
     if (!scenario.goal) findings.push(blocker('missing_goal', `${scenario.name} is missing a goal`));
     for (const action of scenario.actions) {
       if (!action.tool) findings.push(blocker('missing_tool', `${scenario.name} has an action without a tool`));
+      if (!SUPPORTED_EFFECTS.has(action.effect)) findings.push(blocker('invalid_effect', `${action.label} has unsupported effect "${action.effect}"; expected read or write`));
       if (!action.permission) findings.push(warning('missing_permission', `${action.label} does not name a permission scope`));
       else permissions.add(action.permission);
       if ((action.effect === 'write' || action.live) && !action.approval) findings.push(blocker('missing_approval', `${action.label} needs approval evidence before live use`));

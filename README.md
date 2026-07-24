@@ -14,7 +14,11 @@ node src/cli.js fixtures/unsafe-fixture.json --format json
 
 ## Fixture Shape
 
-A bundle includes `name`, optional `description`, and `scenarios`. Each scenario has a `goal` and `actions`; each action should name a `tool`, `intent`, `permission`, `effect`, and approval evidence for write or live actions.
+A bundle includes `name`, optional `description`, and `scenarios`. Each scenario has a `goal` and `actions`; each action should name a `tool`, `intent`, `permission`, and an `effect` of `read` or `write`. Write or live actions also require approval evidence. Unsupported or misspelled effects are blockers.
+
+## CLI exit status
+
+The CLI always emits the requested Markdown or JSON story. It exits `0` for `pass` and `review` stories, and exits `2` after emitting a `blocked` story. Argument and input errors use exit `1`. This lets automation preserve the review artifact while stopping a release on blockers.
 
 ## Verification
 
@@ -37,7 +41,7 @@ The skill validates fixture structure and obvious safety signals. It does not pr
 
 ## Safety Notes
 
-Treat `blocked` output as a release-review stop. Remove secrets from fixtures and attach approval evidence before live connector workflows are considered.
+Treat `blocked` output and exit status `2` as a release-review stop. Remove secrets from fixtures, correct invalid effects, and attach approval evidence before live connector workflows are considered.
 
 ## Release notes
 
