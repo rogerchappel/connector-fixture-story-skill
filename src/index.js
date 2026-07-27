@@ -48,9 +48,30 @@ export function renderMarkdown(story) {
 }
 
 function normalizeScenario(input, index) {
-  return { name: input.name || `Scenario ${index + 1}`, actor: input.actor || 'An agent', goal: input.goal || '', actions: Array.isArray(input.actions) ? input.actions.map(normalizeAction) : [] };
+  if (!isObject(input)) throw new Error(`scenario ${index + 1} must be an object`);
+  const actions = input.actions === undefined ? [] : input.actions;
+  if (!Array.isArray(actions)) throw new Error(`scenario ${index + 1} actions must be an array`);
+  return {
+    name: input.name || `Scenario ${index + 1}`,
+    actor: input.actor || 'An agent',
+    goal: input.goal || '',
+    actions: actions.map((action, actionIndex) => normalizeAction(action, actionIndex, index))
+  };
 }
-function normalizeAction(input, index) { return { label: input.label || input.intent || `action ${index + 1}`, tool: input.tool || '', intent: input.intent || '', permission: input.permission || '', approval: input.approval || '', effect: input.effect || 'read', live: Boolean(input.live), input: input.input || {} }; }
+function normalizeAction(input, index, scenarioIndex) {
+  if (!isObject(input)) throw new Error(`scenario ${scenarioIndex + 1} action ${index + 1} must be an object`);
+  return {
+    label: input.label || input.intent || `action ${index + 1}`,
+    tool: input.tool || '',
+    intent: input.intent || '',
+    permission: input.permission || '',
+    approval: input.approval || '',
+    effect: input.effect ?? '',
+    live: Boolean(input.live),
+    input: input.input || {}
+  };
+}
+function isObject(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
 function checklistFor(scenario) { return ['Confirm fixture data is synthetic or redacted.', 'Confirm permissions match the stated goal.', ...scenario.actions.filter(a => a.effect === 'write' || a.live).map(a => `Confirm approval evidence for ${a.label}.`)]; }
     function containsSecret(value) {
       const text = JSON.stringify(value || {});

@@ -43,13 +43,15 @@ test('blocks unsupported effects instead of treating them as reads', () => {
 });
 
 test('blocks missing effects instead of defaulting them to reads', () => {
-  const analysis = analyzeFixture(fixtureWith({
+  const fixture = parseFixture(JSON.stringify(fixtureWith({
     label: 'Unclassified update',
     tool: 'crm.update',
     intent: 'update a record',
     permission: 'crm.records.write'
-  }));
+  })));
+  const analysis = analyzeFixture(fixture);
 
+  assert.equal(fixture.scenarios[0].actions[0].effect, '');
   assert.equal(analysis.status, 'blocked');
   assert.ok(analysis.findings.some(f => f.code === 'invalid_effect'));
 });
