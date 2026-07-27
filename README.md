@@ -9,12 +9,14 @@ npm install
 npm run smoke
 node src/cli.js --help
 node src/cli.js fixtures/connector-fixture.json --format markdown
-node src/cli.js fixtures/unsafe-fixture.json --format json
+node src/cli.js --format json fixtures/unsafe-fixture.json
 ```
 
 ## Fixture Shape
 
-A bundle includes `name`, optional `description`, and `scenarios`. Each scenario has a `goal` and `actions`; each action should name a `tool`, `intent`, `permission`, and an `effect` of `read` or `write`. Write or live actions also require approval evidence. Unsupported or misspelled effects are blockers.
+A bundle includes `name`, optional `description`, and `scenarios`. Every scenario and action must be a JSON object. Each scenario has a `goal` and an `actions` array; each action must explicitly name an `effect` of `read` or `write` and should name a `tool`, `intent`, and `permission`. Missing, unsupported, or misspelled effects are blockers. Write or live actions also require approval evidence.
+
+The fixture path and `--format` option can appear in either order. Missing option values, unknown options, and extra positional arguments are usage errors.
 
 ## CLI exit status
 

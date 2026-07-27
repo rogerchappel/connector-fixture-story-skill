@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { analyzeFixture, buildStory, loadFixture, renderMarkdown } from '../src/index.js';
+import { analyzeFixture, buildStory, loadFixture, parseFixture, renderMarkdown } from '../src/index.js';
 
 function fixtureWith(action) {
   return {
@@ -40,6 +40,34 @@ test('blocks unsupported effects instead of treating them as reads', () => {
 
   assert.equal(analysis.status, 'blocked');
   assert.ok(analysis.findings.some(f => f.code === 'invalid_effect'));
+});
+
+test('blocks missing effects instead of defaulting them to reads', () => {
+  const fixture = parseFixture(JSON.stringify(fixtureWith({
+    label: 'Unclassified update',
+    tool: 'crm.update',
+    intent: 'update a record',
+    permission: 'crm.records.write'
+  })));
+  const analysis = analyzeFixture(fixture);
+
+  assert.equal(fixture.scenarios[0].actions[0].effect, '');
+  assert.equal(analysis.status, 'blocked');
+  assert.ok(analysis.findings.some(f => f.code === 'invalid_effect'));
+});
+
+test('rejects non-object scenarios and actions with deterministic errors', () => {
+  assert.throws(
+    () => parseFixture(JSON.stringify({ name: 'Invalid scenario', scenarios: [null] })),
+    /scenario 1 must be an object/
+  );
+  assert.throws(
+    () => parseFixture(JSON.stringify({
+      name: 'Invalid action',
+      scenarios: [{ name: 'Scenario', goal: 'validate', actions: [null] }]
+    })),
+    /scenario 1 action 1 must be an object/
+  );
 });
 
 test('blocks write effects and live reads without approval', () => {
@@ -88,6 +116,44 @@ test('CLI renders JSON stories from fixture input', () => {
   const story = JSON.parse(result.stdout);
   assert.equal(story.status, 'pass');
   assert.ok(story.permissions.includes('crm.tasks.write'));
+});
+
+test('CLI accepts the format flag before the fixture', () => {
+  const result = spawnSync(process.execPath, [
+    'src/cli.js',
+    '--format',
+    'json',
+    'fixtures/connector-fixture.json'
+  ], { encoding: 'utf8' });
+
+  assert.equal(result.status, 0);
+  assert.equal(result.stderr, '');
+  assert.equal(JSON.parse(result.stdout).status, 'pass');
+});
+
+test('CLI reports argument errors without stack traces', () => {
+  for (const args of [
+    ['--format'],
+    ['fixtures/connector-fixture.json', '--format'],
+    ['fixtures/connector-fixture.json', 'extra.json'],
+    ['--unknown', 'fixtures/connector-fixture.json']
+  ]) {
+    const result = spawnSync(process.execPath, ['src/cli.js', ...args], { encoding: 'utf8' });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /^connector-fixture-story-skill: .+\nUsage: /);
+    assert.doesNotMatch(result.stderr, /\n\s+at /);
+  }
+});
+
+test('CLI reports invalid fixture members without stack traces', () => {
+  const result = spawnSync(process.execPath, [
+    'src/cli.js',
+    'test/fixtures/null-scenario.json'
+  ], { encoding: 'utf8' });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /scenario 1 must be an object/);
+  assert.doesNotMatch(result.stderr, /\n\s+at /);
 });
 
 test('CLI emits blocked JSON and exits 2', () => {
