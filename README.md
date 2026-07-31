@@ -14,13 +14,15 @@ node src/cli.js --format json fixtures/unsafe-fixture.json
 
 ## Fixture Shape
 
-A bundle includes `name`, optional `description`, and `scenarios`. Every scenario and action must be a JSON object. Each scenario has a `goal` and an `actions` array; each action must explicitly name an `effect` of `read` or `write` and should name a `tool`, `intent`, and `permission`. Missing, unsupported, or misspelled effects are blockers. Write or live actions also require approval evidence.
+A bundle is a JSON object with a non-empty string `name`, an optional string `description`, and a non-empty `scenarios` array. Every scenario is an object: optional `name` and `actor` values are non-empty strings, `goal` is a string, and `actions` is an array when present. Missing names and actors receive display defaults; a missing or empty goal remains valid input but produces a blocker.
+
+Every action is an object. `label`, when present, is a non-empty string. `tool`, `intent`, `permission`, `approval`, and `effect` are strings; `live` is a boolean; and `input` is an object. Missing `effect`, `tool`, and approval evidence remain valid fixture input so the generated story can report the corresponding finding. An effect must be `read` or `write` to avoid a blocker, and write or live actions require non-empty approval evidence before live use.
 
 The fixture path and `--format` option can appear in either order. Missing option values, unknown options, and extra positional arguments are usage errors.
 
 ## CLI exit status
 
-The CLI always emits the requested Markdown or JSON story. It exits `0` for `pass` and `review` stories, and exits `2` after emitting a `blocked` story. Argument and input errors use exit `1`. This lets automation preserve the review artifact while stopping a release on blockers.
+The CLI always emits the requested Markdown or JSON story for structurally valid fixtures. It exits `0` for `pass` and `review` stories, and exits `2` after emitting a `blocked` story. Argument errors, malformed JSON, and invalid field types or non-empty constraints use exit `1`, write a concise error to stderr, and do not emit a story. This lets automation preserve genuine review artifacts without rendering malformed values.
 
 ## Verification
 
