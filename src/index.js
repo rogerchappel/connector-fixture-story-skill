@@ -6,9 +6,11 @@ export function loadFixture(path) { return parseFixture(fs.readFileSync(path, 'u
 
 export function parseFixture(text, source = 'inline') {
   const fixture = JSON.parse(String(text || '{}'));
-  if (!fixture.name) throw new Error('fixture bundle requires a name');
+  if (!isObject(fixture)) throw new Error('fixture bundle must be an object');
+  requireNonEmptyString(fixture.name, 'fixture bundle name');
+  optionalString(fixture.description, 'fixture bundle description');
   if (!Array.isArray(fixture.scenarios) || fixture.scenarios.length === 0) throw new Error('fixture bundle requires scenarios');
-  return { source, name: fixture.name, description: fixture.description || '', scenarios: fixture.scenarios.map(normalizeScenario) };
+  return { source, name: fixture.name, description: fixture.description ?? '', scenarios: fixture.scenarios.map(normalizeScenario) };
 }
 
 export function analyzeFixture(fixture) {
@@ -49,29 +51,43 @@ export function renderMarkdown(story) {
 
 function normalizeScenario(input, index) {
   if (!isObject(input)) throw new Error(`scenario ${index + 1} must be an object`);
+  const context = `scenario ${index + 1}`;
+  optionalNonEmptyString(input.name, `${context} name`);
+  optionalNonEmptyString(input.actor, `${context} actor`);
+  optionalString(input.goal, `${context} goal`);
   const actions = input.actions === undefined ? [] : input.actions;
-  if (!Array.isArray(actions)) throw new Error(`scenario ${index + 1} actions must be an array`);
+  if (!Array.isArray(actions)) throw new Error(`${context} actions must be an array`);
   return {
-    name: input.name || `Scenario ${index + 1}`,
-    actor: input.actor || 'An agent',
-    goal: input.goal || '',
+    name: input.name ?? `Scenario ${index + 1}`,
+    actor: input.actor ?? 'An agent',
+    goal: input.goal ?? '',
     actions: actions.map((action, actionIndex) => normalizeAction(action, actionIndex, index))
   };
 }
 function normalizeAction(input, index, scenarioIndex) {
-  if (!isObject(input)) throw new Error(`scenario ${scenarioIndex + 1} action ${index + 1} must be an object`);
+  const context = `scenario ${scenarioIndex + 1} action ${index + 1}`;
+  if (!isObject(input)) throw new Error(`${context} must be an object`);
+  optionalNonEmptyString(input.label, `${context} label`);
+  for (const field of ['tool', 'intent', 'permission', 'approval', 'effect']) {
+    optionalString(input[field], `${context} ${field}`);
+  }
+  if (input.live !== undefined && typeof input.live !== 'boolean') throw new Error(`${context} live must be a boolean`);
+  if (input.input !== undefined && !isObject(input.input)) throw new Error(`${context} input must be an object`);
   return {
-    label: input.label || input.intent || `action ${index + 1}`,
-    tool: input.tool || '',
-    intent: input.intent || '',
-    permission: input.permission || '',
-    approval: input.approval || '',
+    label: input.label ?? input.intent ?? `action ${index + 1}`,
+    tool: input.tool ?? '',
+    intent: input.intent ?? '',
+    permission: input.permission ?? '',
+    approval: input.approval ?? '',
     effect: input.effect ?? '',
-    live: Boolean(input.live),
-    input: input.input || {}
+    live: input.live ?? false,
+    input: input.input ?? {}
   };
 }
 function isObject(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
+function optionalString(value, context) { if (value !== undefined && typeof value !== 'string') throw new Error(`${context} must be a string`); }
+function requireNonEmptyString(value, context) { if (typeof value !== 'string' || value.trim() === '') throw new Error(`${context} must be a non-empty string`); }
+function optionalNonEmptyString(value, context) { if (value !== undefined) requireNonEmptyString(value, context); }
 function checklistFor(scenario) { return ['Confirm fixture data is synthetic or redacted.', 'Confirm permissions match the stated goal.', ...scenario.actions.filter(a => a.effect === 'write' || a.live).map(a => `Confirm approval evidence for ${a.label}.`)]; }
     function containsSecret(value) {
       const text = JSON.stringify(value || {});
