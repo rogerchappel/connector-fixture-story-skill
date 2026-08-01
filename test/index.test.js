@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { analyzeFixture, buildStory, loadFixture, parseFixture, renderMarkdown } from '../src/index.js';
 
 function fixtureWith(action) {
@@ -68,6 +71,39 @@ test('rejects non-object scenarios and actions with deterministic errors', () =>
     })),
     /scenario 1 action 1 must be an object/
   );
+});
+
+test('rejects malformed public fixture fields at the library boundary', () => {
+  const cases = [
+    [{ name: {}, scenarios: [{}] }, /fixture bundle name must be a non-empty string/],
+    [{ name: 'Bundle', description: [], scenarios: [{}] }, /fixture bundle description must be a string/],
+    [{ name: 'Bundle', scenarios: [{ name: {} }] }, /scenario 1 name must be a non-empty string/],
+    [{ name: 'Bundle', scenarios: [{ actor: [] }] }, /scenario 1 actor must be a non-empty string/],
+    [{ name: 'Bundle', scenarios: [{ goal: 7 }] }, /scenario 1 goal must be a string/],
+    [{ name: 'Bundle', scenarios: [{ actions: [{ label: '' }] }] }, /scenario 1 action 1 label must be a non-empty string/],
+    ...['tool', 'intent', 'permission', 'approval', 'effect'].map(field => [
+      { name: 'Bundle', scenarios: [{ actions: [{ [field]: {} }] }] },
+      new RegExp(`scenario 1 action 1 ${field} must be a string`)
+    ]),
+    [{ name: 'Bundle', scenarios: [{ actions: [{ live: 1 }] }] }, /scenario 1 action 1 live must be a boolean/],
+    [{ name: 'Bundle', scenarios: [{ actions: [{ input: [] }] }] }, /scenario 1 action 1 input must be an object/]
+  ];
+
+  for (const [fixture, message] of cases) {
+    assert.throws(() => parseFixture(JSON.stringify(fixture)), message);
+  }
+});
+
+test('preserves documented defaults and empty finding-bearing fields', () => {
+  const fixture = parseFixture(JSON.stringify({
+    name: 'Compatible fixture',
+    description: '',
+    scenarios: [{ goal: '', actions: [{ tool: '', intent: '', permission: '', approval: '', effect: '' }] }]
+  }));
+
+  assert.equal(fixture.scenarios[0].name, 'Scenario 1');
+  assert.equal(fixture.scenarios[0].actor, 'An agent');
+  assert.equal(buildStory(fixture).status, 'blocked');
 });
 
 test('blocks write effects and live reads without approval', () => {
@@ -154,6 +190,40 @@ test('CLI reports invalid fixture members without stack traces', () => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /scenario 1 must be an object/);
   assert.doesNotMatch(result.stderr, /\n\s+at /);
+});
+
+test('CLI reports every malformed public field as an input error', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'connector-fixture-story-'));
+  const cases = [
+    ['bundle name', { name: {}, scenarios: [{}] }],
+    ['bundle description', { name: 'Bundle', description: [], scenarios: [{}] }],
+    ['scenario name', { name: 'Bundle', scenarios: [{ name: {} }] }],
+    ['scenario actor', { name: 'Bundle', scenarios: [{ actor: [] }] }],
+    ['scenario goal', { name: 'Bundle', scenarios: [{ goal: 7 }] }],
+    ['scenario actions', { name: 'Bundle', scenarios: [{ actions: {} }] }],
+    ['action label', { name: 'Bundle', scenarios: [{ actions: [{ label: '' }] }] }],
+    ['action tool', { name: 'Bundle', scenarios: [{ actions: [{ tool: {} }] }] }],
+    ['action intent', { name: 'Bundle', scenarios: [{ actions: [{ intent: {} }] }] }],
+    ['action permission', { name: 'Bundle', scenarios: [{ actions: [{ permission: {} }] }] }],
+    ['action approval', { name: 'Bundle', scenarios: [{ actions: [{ approval: {} }] }] }],
+    ['action effect', { name: 'Bundle', scenarios: [{ actions: [{ effect: {} }] }] }],
+    ['action live', { name: 'Bundle', scenarios: [{ actions: [{ live: 1 }] }] }],
+    ['action input', { name: 'Bundle', scenarios: [{ actions: [{ input: [] }] }] }]
+  ];
+
+  try {
+    for (const [label, fixture] of cases) {
+      const path = join(directory, `${label.replaceAll(' ', '-')}.json`);
+      writeFileSync(path, JSON.stringify(fixture));
+      const result = spawnSync(process.execPath, ['src/cli.js', path, '--format', 'json'], { encoding: 'utf8' });
+      assert.equal(result.status, 1, label);
+      assert.match(result.stderr, new RegExp(`${label.replaceAll(' ', '.*')} must be`), label);
+      assert.equal(result.stdout, '', label);
+      assert.doesNotMatch(result.stderr, /\[object Object\]|\n\s+at /, label);
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('CLI emits blocked JSON and exits 2', () => {
