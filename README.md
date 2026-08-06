@@ -16,7 +16,7 @@ node src/cli.js --format json fixtures/unsafe-fixture.json
 
 A bundle is a JSON object with a non-empty string `name`, an optional string `description`, and a non-empty `scenarios` array. Every scenario is an object: optional `name` and `actor` values are non-empty strings, `goal` is a string, and `actions` is an array when present. Missing names and actors receive display defaults; a missing or empty goal remains valid input but produces a blocker.
 
-Every action is an object. `label`, when present, is a non-empty string. `tool`, `intent`, `permission`, `approval`, and `effect` are strings; `live` is a boolean; and `input` is an object. Missing `effect`, `tool`, and approval evidence remain valid fixture input so the generated story can report the corresponding finding. An effect must be `read` or `write` to avoid a blocker, and write or live actions require non-empty approval evidence before live use.
+Every action is an object. `label`, when present, is a non-empty string. `tool`, `intent`, `permission`, `approval`, and `effect` are strings; `live` is a boolean; and `input` is an object. Missing `goal`, `tool`, `permission`, `approval`, and `effect` values remain valid fixture input so the generated story can report the corresponding finding. Whitespace-only values in these finding-bearing fields are normalized to missing values; other string content is preserved. An effect must be `read` or `write` to avoid a blocker, and write or live actions require non-empty approval evidence before live use.
 
 The fixture path and `--format` option can appear in either order. Missing option values, unknown options, and extra positional arguments are usage errors.
 
