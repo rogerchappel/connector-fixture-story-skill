@@ -106,6 +106,29 @@ test('preserves documented defaults and empty finding-bearing fields', () => {
   assert.equal(buildStory(fixture).status, 'blocked');
 });
 
+test('normalizes whitespace-only finding-bearing fields to missing values', () => {
+  const fixture = parseFixture(JSON.stringify({
+    name: 'Whitespace findings',
+    scenarios: [{
+      goal: '  ',
+      actions: [{ tool: '\t', intent: 'exercise findings', permission: '\n', approval: '   ', effect: '  ' }]
+    }]
+  }));
+  const action = fixture.scenarios[0].actions[0];
+  const analysis = analyzeFixture(fixture);
+
+  assert.equal(fixture.scenarios[0].goal, '');
+  assert.deepEqual(
+    { tool: action.tool, permission: action.permission, approval: action.approval, effect: action.effect },
+    { tool: '', permission: '', approval: '', effect: '' }
+  );
+  assert.equal(analysis.status, 'blocked');
+  assert.deepEqual(
+    analysis.findings.map(finding => finding.code),
+    ['missing_goal', 'missing_tool', 'invalid_effect', 'missing_permission']
+  );
+});
+
 test('blocks write effects and live reads without approval', () => {
   for (const action of [
     { label: 'Write', tool: 'crm.update', effect: 'write' },
@@ -237,6 +260,30 @@ test('CLI emits blocked JSON and exits 2', () => {
   assert.equal(result.status, 2);
   assert.equal(result.stderr, '');
   assert.equal(JSON.parse(result.stdout).status, 'blocked');
+});
+
+test('CLI blocks whitespace-only approval evidence for writes', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'connector-fixture-story-'));
+  const path = join(directory, 'whitespace-approval.json');
+  writeFileSync(path, JSON.stringify(fixtureWith({
+    label: 'Whitespace approval',
+    tool: 'crm.update',
+    intent: 'update a record',
+    permission: 'crm.records.write',
+    approval: '   ',
+    effect: 'write'
+  })));
+
+  try {
+    const result = spawnSync(process.execPath, ['src/cli.js', path, '--format', 'json'], { encoding: 'utf8' });
+    assert.equal(result.status, 2);
+    assert.equal(result.stderr, '');
+    const story = JSON.parse(result.stdout);
+    assert.equal(story.status, 'blocked');
+    assert.ok(story.findings.some(finding => finding.code === 'missing_approval'));
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('CLI emits blocked Markdown and exits 2', () => {
