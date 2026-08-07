@@ -60,7 +60,7 @@ function normalizeScenario(input, index) {
   return {
     name: input.name ?? `Scenario ${index + 1}`,
     actor: input.actor ?? 'An agent',
-    goal: input.goal ?? '',
+    goal: normalizeFindingString(input.goal),
     actions: actions.map((action, actionIndex) => normalizeAction(action, actionIndex, index))
   };
 }
@@ -75,17 +75,18 @@ function normalizeAction(input, index, scenarioIndex) {
   if (input.input !== undefined && !isObject(input.input)) throw new Error(`${context} input must be an object`);
   return {
     label: input.label ?? input.intent ?? `action ${index + 1}`,
-    tool: input.tool ?? '',
+    tool: normalizeFindingString(input.tool),
     intent: input.intent ?? '',
-    permission: input.permission ?? '',
-    approval: input.approval ?? '',
-    effect: input.effect ?? '',
+    permission: normalizeFindingString(input.permission),
+    approval: normalizeFindingString(input.approval),
+    effect: normalizeFindingString(input.effect),
     live: input.live ?? false,
     input: input.input ?? {}
   };
 }
 function isObject(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
 function optionalString(value, context) { if (value !== undefined && typeof value !== 'string') throw new Error(`${context} must be a string`); }
+function normalizeFindingString(value) { return value === undefined || value.trim() === '' ? '' : value; }
 function requireNonEmptyString(value, context) { if (typeof value !== 'string' || value.trim() === '') throw new Error(`${context} must be a non-empty string`); }
 function optionalNonEmptyString(value, context) { if (value !== undefined) requireNonEmptyString(value, context); }
 function checklistFor(scenario) { return ['Confirm fixture data is synthetic or redacted.', 'Confirm permissions match the stated goal.', ...scenario.actions.filter(a => a.effect === 'write' || a.live).map(a => `Confirm approval evidence for ${a.label}.`)]; }
