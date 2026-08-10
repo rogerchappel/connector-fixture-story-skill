@@ -6,6 +6,11 @@ Use this skill when an agent needs to review connector action fixtures as a dry-
 - JSON fixture bundle with `name`, `scenarios`, and scenario `actions`; every scenario and action must be an object.
 - Each action must explicitly include an `effect` of `read` or `write` and should include `tool`, `intent`, and `permission`; write or live actions also need `approval`.
 
+## CLI grammar
+- Help is standalone only: `connector-fixture-story-skill --help`.
+- Story generation uses `connector-fixture-story-skill <fixture.json> [--format markdown|json]`; the fixture and format option may appear in either order.
+- Combining `--help` with a fixture, format option, or unknown argument is a usage error. It exits `1`, writes the error and usage to stderr, and emits no story.
+
 ## Side-effect boundaries
 - Reads only the fixture file.
 - Writes only stdout.

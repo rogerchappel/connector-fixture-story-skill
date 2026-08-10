@@ -18,11 +18,11 @@ A bundle is a JSON object with a non-empty string `name`, an optional string `de
 
 Every action is an object. `label`, when present, is a non-empty string. `tool`, `intent`, `permission`, `approval`, and `effect` are strings; `live` is a boolean; and `input` is an object. Missing `goal`, `tool`, `permission`, `approval`, and `effect` values remain valid fixture input so the generated story can report the corresponding finding. Whitespace-only values in these finding-bearing fields are normalized to missing values; other string content is preserved. An effect must be `read` or `write` to avoid a blocker, and write or live actions require non-empty approval evidence before live use.
 
-The fixture path and `--format` option can appear in either order. Missing option values, unknown options, and extra positional arguments are usage errors.
+The help grammar is exactly `connector-fixture-story-skill --help`: `--help` must be the only argument. The story grammar is `connector-fixture-story-skill <fixture.json> [--format markdown|json]`; the fixture path and `--format` option can appear in either order. Combining help with a fixture path, `--format`, or any unknown argument is a usage error, as are missing option values, unknown options, and extra positional arguments.
 
 ## CLI exit status
 
-The CLI always emits the requested Markdown or JSON story for structurally valid fixtures. It exits `0` for `pass` and `review` stories, and exits `2` after emitting a `blocked` story. Argument errors, malformed JSON, and invalid field types or non-empty constraints use exit `1`, write a concise error to stderr, and do not emit a story. This lets automation preserve genuine review artifacts without rendering malformed values.
+The CLI always emits the requested Markdown or JSON story for structurally valid fixtures. Standalone help exits `0` and writes usage to stdout. It exits `0` for `pass` and `review` stories, and exits `2` after emitting a `blocked` story. Argument errors, including help combined with any other argument, malformed JSON, and invalid field types or non-empty constraints use exit `1`, write a concise error and usage to stderr, and do not emit a story. This lets automation preserve genuine review artifacts without rendering malformed values.
 
 ## Verification
 
