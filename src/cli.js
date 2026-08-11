@@ -20,7 +20,10 @@ try {
 }
 
 function parseArgs(args) {
-  if (args.includes('--help')) return { help: true };
+  if (args.includes('--help')) {
+    if (args.length !== 1) throw new Error('--help must be used without other arguments');
+    return { help: true };
+  }
 
   let file;
   let format = 'markdown';
