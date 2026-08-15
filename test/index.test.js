@@ -46,10 +46,10 @@ test('renders fixture-controlled Markdown as literal single-line text', () => {
   const markdown = renderMarkdown(story);
 
   assert.match(markdown, /^# Quarterly \\# Review$/m);
-  assert.match(markdown, /First line ``` second \\\*line\\\* &lt;mark&gt;/);
-  assert.match(markdown, /^## Overview \\#\\# Unintended section$/m);
-  assert.match(markdown, /\\&gt; Reviewer intends to review \\[Q3\\]\\\(https:\/\/example\\\.com\\\) - publish/);
-  assert.match(markdown, /`crm\.read`|\\`crm\\\.read\\`/);
+  assert.ok(markdown.includes('First line \\`\\`\\` second \\*line\\* &lt;mark&gt;'));
+  assert.ok(markdown.includes('## Overview \\#\\# Unintended section'));
+  assert.ok(markdown.includes('&gt; Reviewer intends to review \\[Q3\\]\\(https://example\\.com\\) \\- publish'));
+  assert.ok(markdown.includes('\\`crm\\.read\\`'));
   assert.doesNotMatch(markdown, /^```|^## Unintended|^- publish/m);
 
   assert.equal(story.name, 'Quarterly # Review');

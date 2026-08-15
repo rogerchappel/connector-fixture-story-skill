@@ -44,9 +44,21 @@ export function buildStory(fixture) {
 }
 
 export function renderMarkdown(story) {
-  const list = (items, empty='- None listed') => items.length ? items.map(item => typeof item === 'string' ? `- ${item}` : `- ${item.level}: ${item.code} - ${item.message}`).join('\n') : empty;
-  const scenarios = story.scenarios.map(s => `## ${s.name}\n\n${s.narrative}\n\n### Dry-run Actions\n\n${list(s.actions)}\n\n### Reviewer Checklist\n\n${list(s.checklist)}`).join('\n\n');
-  return `# ${story.name}\n\nStatus: ${story.status}\n\n${story.description}\n\n## Permissions\n\n${list(story.permissions)}\n\n## Findings\n\n${list(story.findings, '- None')}\n\n${scenarios}\n`;
+  const list = (items, empty='- None listed') => items.length ? items.map(item => typeof item === 'string'
+    ? `- ${markdownText(item)}`
+    : `- ${markdownText(item.level)}: ${markdownText(item.code)} - ${markdownText(item.message)}`
+  ).join('\n') : empty;
+  const scenarios = story.scenarios.map(s => `## ${markdownText(s.name)}\n\n${markdownText(s.narrative)}\n\n### Dry-run Actions\n\n${list(s.actions)}\n\n### Reviewer Checklist\n\n${list(s.checklist)}`).join('\n\n');
+  return `# ${markdownText(story.name)}\n\nStatus: ${markdownText(story.status)}\n\n${markdownText(story.description)}\n\n## Permissions\n\n${list(story.permissions)}\n\n## Findings\n\n${list(story.findings, '- None')}\n\n${scenarios}\n`;
+}
+
+function markdownText(value) {
+  return String(value)
+    .replace(/[\r\n\t\f\v\u2028\u2029]+/g, ' ')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/[\\`*_[\]{}()#+.!|>~-]/g, '\\$&');
 }
 
 function normalizeScenario(input, index) {
