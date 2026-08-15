@@ -24,6 +24,10 @@ The help grammar is exactly `connector-fixture-story-skill --help`: `--help` mus
 
 The CLI always emits the requested Markdown or JSON story for structurally valid fixtures. Standalone help exits `0` and writes usage to stdout. It exits `0` for `pass` and `review` stories, and exits `2` after emitting a `blocked` story. Argument errors, including help combined with any other argument, malformed JSON, and invalid field types or non-empty constraints use exit `1`, write a concise error and usage to stderr, and do not emit a story. This lets automation preserve genuine review artifacts without rendering malformed values.
 
+### Renderer contract
+
+Markdown output treats every fixture-controlled value as literal text. Line breaks and other line-separating whitespace are collapsed to spaces, HTML delimiters are encoded, and Markdown punctuation is backslash-escaped before values are inserted into the fixed document hierarchy. Names, descriptions, scenarios, goals, action fields, permissions, and findings therefore cannot introduce headings, lists, links, emphasis, code fences, block quotes, or HTML. JSON output is not display-escaped or line-normalized: it preserves the parsed story values unchanged for programmatic consumers.
+
 ## Verification
 
 Run the same checks used for release-readiness before publishing or opening a release PR:
