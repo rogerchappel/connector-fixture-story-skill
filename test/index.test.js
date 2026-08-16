@@ -25,6 +25,38 @@ test('builds a passing story for approved fixture writes', () => {
   assert.match(renderMarkdown(story), /Reviewer Checklist/);
 });
 
+test('renders fixture-controlled Markdown as literal single-line text', () => {
+  const fixture = parseFixture(JSON.stringify({
+    name: 'Quarterly # Review',
+    description: 'First line\n\n```\nsecond *line* <mark>',
+    scenarios: [{
+      name: 'Overview\n\n## Unintended section',
+      actor: '> Reviewer',
+      goal: 'review [Q3](https://example.com)\n- publish',
+      actions: [{
+        label: 'Confirm **approval**',
+        tool: '`crm.read`',
+        intent: 'inspect | records',
+        permission: 'crm.records_[read]',
+        effect: 'read'
+      }]
+    }]
+  }));
+  const story = buildStory(fixture);
+  const markdown = renderMarkdown(story);
+
+  assert.match(markdown, /^# Quarterly \\# Review$/m);
+  assert.ok(markdown.includes('First line \\`\\`\\` second \\*line\\* &lt;mark&gt;'));
+  assert.ok(markdown.includes('## Overview \\#\\# Unintended section'));
+  assert.ok(markdown.includes('&gt; Reviewer intends to review \\[Q3\\]\\(https://example\\.com\\) \\- publish'));
+  assert.ok(markdown.includes('\\`crm\\.read\\`'));
+  assert.doesNotMatch(markdown, /^```|^## Unintended|^- publish/m);
+
+  assert.equal(story.name, 'Quarterly # Review');
+  assert.equal(story.description, 'First line\n\n```\nsecond *line* <mark>');
+  assert.equal(story.scenarios[0].goal, 'review [Q3](https://example.com)\n- publish');
+});
+
 test('blocks live writes without approval', () => {
   const analysis = analyzeFixture(loadFixture('fixtures/unsafe-fixture.json'));
   assert.equal(analysis.status, 'blocked');
@@ -175,6 +207,38 @@ test('CLI renders JSON stories from fixture input', () => {
   const story = JSON.parse(result.stdout);
   assert.equal(story.status, 'pass');
   assert.ok(story.permissions.includes('crm.tasks.write'));
+});
+
+test('CLI keeps multiline Markdown structure literal while preserving JSON values', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'connector-fixture-story-'));
+  const path = join(directory, 'markdown-literals.json');
+  const fixture = {
+    name: 'CLI # Story',
+    description: 'description\n## injected',
+    scenarios: [{
+      name: 'Scenario *one*',
+      actor: 'A reviewer',
+      goal: 'check [links]\n- and lists',
+      actions: []
+    }]
+  };
+  writeFileSync(path, JSON.stringify(fixture));
+
+  try {
+    const markdown = spawnSync(process.execPath, ['src/cli.js', path, '--format', 'markdown'], { encoding: 'utf8' });
+    assert.equal(markdown.status, 0);
+    assert.match(markdown.stdout, /^# CLI \\# Story$/m);
+    assert.match(markdown.stdout, /description \\#\\# injected/);
+    assert.doesNotMatch(markdown.stdout, /^## injected|^- and lists/m);
+
+    const json = spawnSync(process.execPath, ['src/cli.js', path, '--format', 'json'], { encoding: 'utf8' });
+    assert.equal(json.status, 0);
+    const story = JSON.parse(json.stdout);
+    assert.equal(story.description, fixture.description);
+    assert.equal(story.scenarios[0].goal, fixture.scenarios[0].goal);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('CLI accepts the format flag before the fixture', () => {
