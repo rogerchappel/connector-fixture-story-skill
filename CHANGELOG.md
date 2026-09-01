@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Raise the supported runtime baseline to Node.js 22 and verify release readiness on Node.js 22 and 24.
+- Pin the CI checkout and Node setup actions to immutable commits.
+
 ## [Unreleased]
 
 - Require explicit action effects, validate scenario/action members, and report concise CLI input errors.

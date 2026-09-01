@@ -2,6 +2,8 @@
 
 Local-first agent skill that turns connector fixture bundles into dry-run review stories with permissions, blockers, and reviewer checklists.
 
+Requires Node.js 22 or newer. CI verifies the active Node.js 22 and 24 release lines.
+
 ## Quickstart
 
 ```bash
@@ -41,7 +43,7 @@ npm run release:check
 npm pack --dry-run
 ```
 
-The CI workflow runs `npm run release:check`, so local release checks and pull-request checks exercise the same syntax, test, smoke, and package contents coverage.
+The CI workflow runs `npm ci` and `npm run release:check` on Node.js 22 and 24, so local release checks and pull-request checks exercise the same syntax, test, smoke, and package contents coverage across every supported active release line.
 
 ## Limitations
 
