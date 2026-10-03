@@ -1,0 +1,25 @@
+{
+  "name": "crm-basic",
+  "description": "Synthetic CRM note fixture from connector-fixture-pack's bundle format.",
+  "scenarios": [
+    {
+      "name": "Create a CRM note",
+      "actor": "A support agent",
+      "goal": "record a follow-up note for the demo account",
+      "actions": [
+        {
+          "tool": "crm.create_note",
+          "intent": "POST /v1/contacts/contact_demo_123/notes",
+          "permission": "crm.notes.write",
+          "effect": "write",
+          "approval": "approval-crm-create-note",
+          "input": {
+            "contactId": "contact_demo_123",
+            "note": "Follow up with the demo account next week.",
+            "owner": "agent@example.invalid"
+          }
+        }
+      ]
+    }
+  ]
+}
