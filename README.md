@@ -30,6 +30,10 @@ The CLI always emits the requested Markdown or JSON story for structurally valid
 
 Markdown output treats every fixture-controlled value as literal text. Line breaks and other line-separating whitespace are collapsed to spaces, HTML delimiters are encoded, and Markdown punctuation is backslash-escaped before values are inserted into the fixed document hierarchy. Names, descriptions, scenarios, goals, action fields, permissions, and findings therefore cannot introduce headings, lists, links, emphasis, code fences, block quotes, or HTML. JSON output is not display-escaped or line-normalized: it preserves the parsed story values unchanged for programmatic consumers.
 
+## connector-fixture-pack interoperability
+
+`fixtures/connector-fixture-pack-crm-basic.json` is an offline, sanitized adaptation of the `crm-basic` fixture pack. Story skill expects `name`, optional `description`, and `scenarios` containing goals and actions; fixture-pack bundles instead store request, approval, response, and redaction records in separate files. Convert each request to an action (tool/intent/input), map its permission/effect, and map an approval record to the action's `approval` evidence. The story format does not currently preserve response bodies, redaction metadata, HTTP method/path as separate fields, or fixture-pack connector metadata; include useful method/path in intent and retain only sanitized input. No fixture-pack package or external service is required for this example.
+
 ## Verification
 
 Run the same checks used for release-readiness before publishing or opening a release PR:

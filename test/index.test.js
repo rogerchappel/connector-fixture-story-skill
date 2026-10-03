@@ -380,3 +380,12 @@ test('CLI exits 0 for passing and review stories', () => {
   assert.equal(review.status, 0);
   assert.equal(JSON.parse(review.stdout).status, 'review');
 });
+
+
+test('renders a sanitized connector-fixture-pack CRM bundle after documented adaptation', () => {
+  const story = buildStory(loadFixture('fixtures/connector-fixture-pack-crm-basic.json'));
+  assert.equal(story.status, 'pass');
+  assert.deepEqual(story.permissions, ['crm.notes.write']);
+  assert.match(story.scenarios[0].actions[0], /POST \/v1\/contacts\/contact_demo_123\/notes/);
+  assert.match(story.scenarios[0].checklist.join(' '), /approval evidence/);
+});
