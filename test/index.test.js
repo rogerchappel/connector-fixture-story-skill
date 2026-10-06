@@ -57,6 +57,28 @@ test('renders fixture-controlled Markdown as literal single-line text', () => {
   assert.equal(story.scenarios[0].goal, 'review [Q3](https://example.com)\n- publish');
 });
 
+test('removes C0 control characters from fixture-backed Markdown fields', () => {
+  const controls = '\u0000\u0001\u0008\u000b\u000c\u000e\u001f';
+  const fixture = parseFixture(JSON.stringify({
+    name: `Bundle${controls}name`,
+    description: `Description${controls}text`,
+    scenarios: [{
+      name: `Scenario${controls}name`,
+      actor: 'Reviewer',
+      goal: `inspect${controls}records`,
+      actions: [{ tool: `crm${controls}.read`, intent: `read${controls}records`, permission: 'crm.read' }]
+    }]
+  }));
+  const markdown = renderMarkdown(buildStory(fixture));
+
+  assert.doesNotMatch(markdown, /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/);
+  assert.match(markdown, /Bundle name/);
+  assert.match(markdown, /Description text/);
+  assert.match(markdown, /Scenario name/);
+  assert.match(markdown, /inspect records/);
+  assert.match(markdown, /read records/);
+});
+
 test('blocks live writes without approval', () => {
   const analysis = analyzeFixture(loadFixture('fixtures/unsafe-fixture.json'));
   assert.equal(analysis.status, 'blocked');

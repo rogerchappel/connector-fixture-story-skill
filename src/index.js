@@ -54,7 +54,7 @@ export function renderMarkdown(story) {
 
 function markdownText(value) {
   return String(value)
-    .replace(/[\r\n\t\f\v\u2028\u2029]+/g, ' ')
+    .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, ' ')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
